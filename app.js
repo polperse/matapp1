@@ -9,7 +9,9 @@ var dataBase = mongojs('matapp1', ['invoices']);
 
 // Body Parser Middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 
 
 dataBase.on('error', function(err) {
@@ -31,12 +33,8 @@ dataBase.on('connect', function() {
 
 app.get('/', function(req, res) {
   res.send('Estas donde estas: home');
-
-  var confirmation = confirm('Queres ir al listado de invoices?');
-
-  if (confirmation) {
-    res.redirect('/invoices');
-  }
+  delay(3000);
+  res.redirect('/invoices');
 });
 
 // POST /login gets urlencoded bodies
@@ -52,10 +50,7 @@ app.get('/invoices', function(req, res) {
   });
 });
 
-app.post('/invoices/new/:numero/:fecha/:precio/:descripcion', function(req, res) {
-
-  res.send('Invoice: ' + req.params.numero + 'creada');
-  console.log('se crea la invoice: ' + req.params.numero);
+app.get('/invoices/new/:numero/:fecha/:precio/:descripcion', function(req, res) {
 
   var newInvoice = {
     numero: req.params.numero,
@@ -68,25 +63,54 @@ app.post('/invoices/new/:numero/:fecha/:precio/:descripcion', function(req, res)
 
     if (err) {
       console.log(err + ' al querer guardar la invoice ' + newInvoice.numero);
-      alert('ERROR: ' + newInvoice.numero + ' no fue almacenada');
+      //alert('ERROR: ' + newInvoice.numero + ' no fue almacenada');
     } else {
       res.redirect('/invoices');
-      alert('La invoice ' + newInvoice.numero + ' fue almacenada');
+      console.log('La invoice ' + newInvoice.numero + ' fue almacenada');
     }
 
   });
 });
 
-app.put('/invoice/edit/:numero', function(req, res) {
+app.put('/invoice/edit/:numero/:fecha/:precio/:descripcion', function(req, res) {
 
-  res.send('peticion de PUT: ' + req.params.numero);
-  console.log('peticion de PUT, ' + req.params.numero);
+  var updatedInvoice = {
+    numero: req.params.numero,
+    fecha: req.params.fecha,
+    precio: req.params.precio,
+    descripcion: req.params.descripcion
+  };
+
+  dataBase.invoice.updateOne({
+      item: updatedInvoice.numero
+    }, {
+      $set: {
+        "fecha": updatedInvoice.fecha,
+        "precio": updatedInvoice.precio,
+        "descripcion": updatedInvoice.descripcion
+      },
+    },
+
+    function(err, result) {
+
+      if (err) {
+        console.log(err + ' al querer editar la invoice ' + updatedInvoice.numero);
+      } else {
+        res.redirect('/invoices');
+        console.log('La invoice ' + updatedInvoice.numero + ' fue editada');
+      }
+
+    });
 });
 
 app.delete('/invoice/delete/:numero', function(req, res) {
 
-  res.send('peticion de DELETE de: ' + req.params.numero);
-  console.log('se intenta borrar el registro: ' + req.params.numero);
+  dataBase.invoices.remove({"numero": req.params.numero}, function(err, result) {
+      if (err) {
+          console.log(err);
+      }
+      console.log('La invoice ' + req.params.numero + ' fue eliminada');
+  });
 });
 
 // GET al /status
