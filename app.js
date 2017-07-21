@@ -9,9 +9,7 @@ var dataBase = mongojs('matapp1', ['invoices']);
 
 // Body Parser Middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-  extended: false
-}));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 
 dataBase.on('error', function(err) {
@@ -39,88 +37,62 @@ app.get('/', function(req, res) {
   if (confirmation) {
     res.redirect('/invoices');
   }
-
 });
 
 // POST /login gets urlencoded bodies
 app.get('/invoices', function(req, res) {
 
-  if (!req.body) {
-    return res.sendStatus(400);
-  } else {
-    dataBase.users.find(function(err, docs) {
-      /* Si tuviera que iterar y mostrar 1 a 1
-        lodash.foreach(invoices, function(){
-        res.json(invoice);
-      }); */
-      // invoices is an array of invoices from mongoDB collection
-      res.json(invoices);
-    });
-  }
-
+  dataBase.invoices.find(function(err, invoices) {
+    /* Si tuviera que iterar y mostrar 1 a 1
+      lodash.foreach(invoices, function(){
+      res.json(invoice);
+    }); */
+    // invoices is an array of invoices from mongoDB collection
+    res.json(invoices);
+  });
 });
 
-app.post('/invoice/new/:numero/:fecha/:precio/:descripcion', function(req, res) {
+app.post('/invoices/new/:numero/:fecha/:precio/:descripcion', function(req, res) {
 
-  if (!req.body) {
-    return res.sendStatus(400);
-  } else {
-    res.send('Invoice: ' + req.params.numero + 'creada');
-    console.log('se crea la invoice: ' + req.params.numero);
+  res.send('Invoice: ' + req.params.numero + 'creada');
+  console.log('se crea la invoice: ' + req.params.numero);
 
-    var newInvoice = {
-      numero: req.params.numero,
-      fecha: req.params.fecha,
-      precio: req.params.precio,
-      descripcion: req.params.descripcion
-    };
+  var newInvoice = {
+    numero: req.params.numero,
+    fecha: req.params.fecha,
+    precio: req.params.precio,
+    descripcion: req.params.descripcion
+  };
 
-    dataBase.users.insert(newInvoice, function(err, result) {
+  dataBase.invoices.insert(newInvoice, function(err, result) {
 
-      if (err) {
-        console.log(err + ' al querer guardar la invoice ' + newInvoice.numero);
-        alert('ERROR: ' + newInvoice.numero + ' no fue almacenada');
-      } else {
-        res.redirect('/invoices');
-        alert('La invoice ' + newInvoice.numero + ' fue almacenada');
-      }
+    if (err) {
+      console.log(err + ' al querer guardar la invoice ' + newInvoice.numero);
+      alert('ERROR: ' + newInvoice.numero + ' no fue almacenada');
+    } else {
+      res.redirect('/invoices');
+      alert('La invoice ' + newInvoice.numero + ' fue almacenada');
+    }
 
-    });
-  }
-
+  });
 });
 
-app.put('/invoice/edit/:id', function(req, res) {
+app.put('/invoice/edit/:numero', function(req, res) {
 
-  if (!req.body) {
-    return res.sendStatus(400);
-  } else {
-    res.send('peticion de PUT: ' + req.params.id);
-    console.log('peticion de PUT, ' + req.params.id);
-  }
-
+  res.send('peticion de PUT: ' + req.params.numero);
+  console.log('peticion de PUT, ' + req.params.numero);
 });
 
-app.delete('/invoice/delete/:id', function(req, res) {
+app.delete('/invoice/delete/:numero', function(req, res) {
 
-  if (!req.body) {
-    return res.sendStatus(400);
-  } else {
-    res.send('peticion de DELETE de: ' + req.params.id);
-    console.log('se intenta borrar el registro: ' + req.params.id);
-  }
-
+  res.send('peticion de DELETE de: ' + req.params.numero);
+  console.log('se intenta borrar el registro: ' + req.params.numero);
 });
 
 // GET al /status
 app.get('/status', function(req, res) {
 
-  if (!req.body) {
-    return res.sendStatus(400);
-  } else {
-    res.send('GET al /status');
-  }
-
+  res.send('GET al /status');
 });
 
 app.listen(3000, function() {
